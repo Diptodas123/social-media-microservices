@@ -1,6 +1,6 @@
 import { createLogger, format, transports } from "winston";
 
-const logger = createLogger({
+export const logger = createLogger({
     level: process.env.NODE_ENV === "production" ? "info" : "debug",
     format: format.combine(
         format.timestamp(),
@@ -14,12 +14,9 @@ const logger = createLogger({
             format: format.combine(
                 format.colorize(),
                 format.simple(),
-
             ),
         }),
         new transports.File({ filename: "error.log", level: "error" }),
         new transports.File({ filename: "combined.log" })
     ]
 });
-
-export default logger;

@@ -2,7 +2,7 @@ import { Schema, model } from "mongoose";
 import argon2 from "argon2";
 
 const userSchema = new Schema({
-    userName: {
+    username: {
         type: String,
         required: true,
         unique: true,
@@ -22,26 +22,25 @@ const userSchema = new Schema({
 
 }, { timestamps: true });
 
-userSchema.pre("save", async () => {
+userSchema.pre("save", async function () {
     if (this.isModified("password")) {
         try {
-            //eslint-disable-next-line
             this.password = await argon2.hash(this.password);
         } catch (error) {
-            return next(error);
+            next(error);
         }
     }
 });
 
 userSchema.methods.comparePassword = async (password) => {
-    try{
-        return await argon2.verify(this.password,password);
-    }catch(error){
+    try {
+        return await argon2.verify(this.password, password);
+    } catch (error) {
         throw new Error(error);
     }
 }
 
-userSchema.index({userName:'text'});
+userSchema.index({ username: 'text' });
 
 const User = model("User", userSchema);
 

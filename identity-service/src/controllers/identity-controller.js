@@ -1,7 +1,7 @@
-import { logger } from "../utils/logger";
-import { validateRegistration } from "../utils/validation";
-import User from "../models/User";
-import generateToken from "../utils/generateToken";
+import {logger} from "../utils/logger.js";
+import { validateRegistration } from "../utils/validation.js";
+import User from "../models/User.js";
+import generateToken from "../utils/generateToken.js";
 
 export const registerUser = async (req, res) => {
     logger.info("Registration endpoint called");
@@ -17,9 +17,9 @@ export const registerUser = async (req, res) => {
             });
         }
 
-        const { userName, email, password } = req.body;
+        const { username, email, password } = req.body;
 
-        let user = await User.findOne({ $or: [{ userName }, { email }] });
+        let user = await User.findOne({ $or: [{ username }, { email }] });
         if (user) {
             logger.warn("User already exists");
             return res.status(400).json({
@@ -28,7 +28,7 @@ export const registerUser = async (req, res) => {
             });
         }
 
-        user = new User({ userName, email, password });
+        user = new User({ username, email, password });
         await user.save();
         logger.warn("User saved successfully", user._id);
 
@@ -44,8 +44,8 @@ export const registerUser = async (req, res) => {
     } catch (error) {
         logger.error("Error occurred while registering user", error);
         return res.status(500).json({
-            success:false,
-            message:"Internal server error"
+            success: false,
+            message: "Internal server error"
         });
     }
 }
