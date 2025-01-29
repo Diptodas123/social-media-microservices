@@ -46,7 +46,7 @@ app.use(rateLimitOptions);
 // Proxy setup
 const proxyOptions = {
     proxyReqPathResolver: (req) => {
-        return req.originalUrl.replace(/^\/v1/, "/api");
+        return req.originalUrl.replace(/^\/v1/, "/api");    //replace /v1 with /api to proxy the request to identity service
     },
     proxyErrorHandler: (err, res, next) => {
         logger.error(`Proxy error: ${err.message}`, { stack: err.stack });
