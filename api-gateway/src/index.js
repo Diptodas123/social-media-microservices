@@ -58,7 +58,7 @@ const proxyOptions = {
 };
 
 // Setting up proxy for identity service
-app.use("/v1/auth", proxy(process.env.IDENTITY_SERVICE_URL, {
+app.use("/v1/auth", proxy(process.env.IDENTITY_SERVICE_URL, {   //localhost:3001/v1/auth/register/ ->  localhost:3000/api/auth/register/
     ...proxyOptions,
     proxyReqBodyDecorator: (bodyContent, req) => {
         req.headers["Content-Type"] = "application/json";
