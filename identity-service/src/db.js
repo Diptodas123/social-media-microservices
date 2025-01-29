@@ -14,6 +14,7 @@ const connectDB = async () => {
 
 const redisClient = new Redis(process.env.REDIS_URL);
 
+//DDos Protection and Rate Limiting
 const rateLimiter = new RateLimiterRedis({
     storeClient: redisClient,
     keyPrefix: 'middleware',

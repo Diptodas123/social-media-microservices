@@ -14,7 +14,7 @@ config();
 
 //initialize express app
 const app = express();
-const PORT = process.env.PORT || 3000;
+const PORT = process.env.PORT || 3001;
 
 //Connect to database
 connectDB();
@@ -25,7 +25,7 @@ app.use(cors());
 app.use(helmet());
 app.use((req, res, next) => {
     logger.info(`${req.method} - ${req.originalUrl} - ${req.ip}`);
-    logger.info(`Request body: ${JSON.stringify(req.body)}`);
+    logger.info(`Request body: ${JSON.stringify(req.body && req.body.password ? { ...req.body, password: "*******" } : req.body)}`);    //Masking password
     next();
 });
 //Rate limiter middleware
@@ -49,8 +49,8 @@ app.use(errorHandler);
 
 //Start the server
 app.listen(PORT, () => {
-    logger.info(`Identity Service is running at ${process.env.PORT}`)
-    console.log(`Identity Service is running at http://localhost:${process.env.PORT}`);
+    logger.info(`Identity Service is running at ${PORT}`)
+    console.log(`Identity Service is running at http://localhost:${PORT}`);
 })
 
 //unhandled promise rejection
