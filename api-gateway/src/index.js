@@ -8,6 +8,7 @@ import helmet from "helmet";
 import { rateLimit } from "express-rate-limit";
 import { RedisStore } from "rate-limit-redis";
 import proxy from "express-http-proxy";
+import { validateToken } from "./middleware/authMiddlerware.js";
 
 config();
 
@@ -60,14 +61,29 @@ const proxyOptions = {
 // Setting up proxy for identity service
 app.use("/v1/auth", proxy(process.env.IDENTITY_SERVICE_URL, {   //localhost:3001/v1/auth/register/ ->  localhost:3000/api/auth/register/
     ...proxyOptions,
-    proxyReqBodyDecorator: (bodyContent, req) => {
-        req.headers["Content-Type"] = "application/json";
-        return JSON.stringify(bodyContent);
+    proxyReqOptDecorator: (proxyReqOpts, srcReq) => {
+        proxyReqOpts.headers["Content-Type"] = "application/json";
+        return proxyReqOpts;
     },
     userResDecorator: (proxyRes, proxyResData, userReq, userRes) => {
         logger.info(`Response from identity service: ${proxyRes.statusCode}`);
         return proxyResData;
     },
+}));
+
+// Setting up proxy for post service
+app.use("/v1/posts", validateToken, proxy(process.env.POST_SERVICE_URL, { //localhost:3002/v1/posts/ ->  localhost:3000/api/posts/
+    ...proxyOptions,
+    proxyReqOptDecorator: (proxyReqOpts, srcReq) => {
+        proxyReqOpts.headers["Content-Type"] = "application/json";
+        proxyReqOpts.headers['x-user-id'] = srcReq.user.userId; // Forwarding the user id to post-service for authorization
+        return proxyReqOpts;
+    },
+    userResDecorator: (proxyRes, proxyResData, userReq, userRes) => {
+        logger.info(`Response from post-service: ${proxyRes.statusCode}`);
+        return proxyResData;
+    },
+
 }));
 
 // Global error handler
@@ -77,6 +93,7 @@ app.use(errorHandler);
 app.listen(PORT, () => {
     logger.info(`API gateway is running on port ${PORT}`);
     logger.info(`Identity service is running at ${process.env.IDENTITY_SERVICE_URL}`);
+    logger.info(`Post service is running at ${process.env.POST_SERVICE_URL}`);
     logger.info(`Redis is running at ${process.env.REDIS_URL}`);
 });
 
