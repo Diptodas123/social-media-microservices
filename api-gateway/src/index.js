@@ -23,7 +23,7 @@ app.use(express.json());
 app.use(helmet());
 app.use((req, res, next) => {
     logger.info(`${req.method} - ${req.originalUrl} - ${req.ip}`);
-    logger.info(`Request body: ${JSON.stringify(req.body)}`);
+    logger.info(`Request body: ${JSON.stringify(req.body && req.body.password ? { ...req.body, password: "*******" } : req.body)}`);    //Masking password
     next();
 });
 

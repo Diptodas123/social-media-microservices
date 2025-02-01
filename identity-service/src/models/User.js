@@ -29,12 +29,12 @@ userSchema.pre("save", async function (next) {
         } catch (error) {
             next(error);
         }
-    }else{
+    } else {
         next();
     }
 });
 
-userSchema.methods.comparePassword = async (password) => {
+userSchema.methods.comparePassword = async function (password) {
     try {
         return await argon2.verify(this.password, password);
     } catch (error) {
