@@ -6,8 +6,9 @@ const router = Router();
 router.use(authenticateRequest);
 
 router.post("/create-post", createPost);
-router.get("/get-all-posts", getAllPosts);
-router.get("/get-post/:postId", getPost);
-router.delete("/delete-post/:postId", deletePost);
+router.get("/all-posts", getAllPosts);
+router.route("/:postId")
+    .get(getPost)   
+    .delete(deletePost);
 
 export default router;
