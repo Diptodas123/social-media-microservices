@@ -59,7 +59,7 @@ const proxyOptions = {
 };
 
 // Setting up proxy for identity service
-app.use("/v1/auth", proxy(process.env.IDENTITY_SERVICE_URL, {   //localhost:3001/v1/auth/register/ ->  localhost:3000/api/auth/register/
+app.use("/v1/auth", proxy(process.env.IDENTITY_SERVICE_URL, {   //localhost:3000/v1/auth/register/ ->  localhost:3001/api/auth/register/
     ...proxyOptions,
     proxyReqOptDecorator: (proxyReqOpts, srcReq) => {
         proxyReqOpts.headers["Content-Type"] = "application/json";
@@ -72,7 +72,7 @@ app.use("/v1/auth", proxy(process.env.IDENTITY_SERVICE_URL, {   //localhost:3001
 }));
 
 // Setting up proxy for post service
-app.use("/v1/posts", validateToken, proxy(process.env.POST_SERVICE_URL, { //localhost:3002/v1/posts/ ->  localhost:3000/api/posts/
+app.use("/v1/posts", validateToken, proxy(process.env.POST_SERVICE_URL, { //localhost:3000/v1/posts/ ->  localhost:3002/api/posts/
     ...proxyOptions,
     proxyReqOptDecorator: (proxyReqOpts, srcReq) => {
         proxyReqOpts.headers["Content-Type"] = "application/json";
@@ -80,10 +80,27 @@ app.use("/v1/posts", validateToken, proxy(process.env.POST_SERVICE_URL, { //loca
         return proxyReqOpts;
     },
     userResDecorator: (proxyRes, proxyResData, userReq, userRes) => {
-        logger.info(`Response from post-service: ${proxyRes.statusCode}`);
+        logger.info(`Response from post service: ${proxyRes.statusCode}`);
         return proxyResData;
     },
 
+}));
+
+// Setting up proxy for media service
+app.use("/v1/media", validateToken, proxy(process.env.MEDIA_SERVICE_URL, { //localhost:3000/v1/media/ ->  localhost:3003/api/media/
+    ...proxyOptions,
+    proxyReqOptDecorator: (proxyReqOpts, srcReq) => {
+        proxyReqOpts.headers['x-user-id'] = srcReq.user.userId; // Forwarding the user id to post-service for authorization
+        if (!srcReq.headers["content-type"].startsWith("multipart/form-data")) {
+            proxyReqOpts.headers["Content-Type"] = "application/json";
+        }
+        return proxyReqOpts;
+    },
+    userResDecorator: (proxyRes, proxyResData, userReq, userRes) => {
+        logger.info(`Response from media service: ${proxyRes.statusCode}`);
+        return proxyResData;
+    },
+    parseReqBody: false
 }));
 
 // Global error handler
@@ -94,6 +111,7 @@ app.listen(PORT, () => {
     logger.info(`API gateway is running on port ${PORT}`);
     logger.info(`Identity service is running at ${process.env.IDENTITY_SERVICE_URL}`);
     logger.info(`Post service is running at ${process.env.POST_SERVICE_URL}`);
+    logger.info(`Media service is running at ${process.env.MEDIA_SERVICE_URL}`);
     logger.info(`Redis is running at ${process.env.REDIS_URL}`);
 });
 

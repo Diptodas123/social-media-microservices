@@ -14,10 +14,10 @@ export const uploadMedia = async (req, res) => {
             });
         }
 
-        const { originalName, mimeType, buffer } = req.file;
+        const { originalname, mimetype, buffer } = req.file;
         const userId = req.user.userId;
 
-        logger.info(`File details: name=${originalName}, type=${mimeType}`);
+        logger.info(`File details: name=${originalname}, type=${mimetype}`);
         logger.info(`Uploading to cloudinary...`);
 
         const cloudinaryUploadResult = await uploadMediaToCloudinary(req.file);
@@ -25,8 +25,8 @@ export const uploadMedia = async (req, res) => {
 
         const newlyCreatedMedia = new Media({
             publicId: cloudinaryUploadResult.public_id,
-            originalName,
-            mimeType,
+            originalName: originalname,
+            mimeType: mimetype,
             url: cloudinaryUploadResult.secure_url,
             userId
         });
@@ -34,16 +34,29 @@ export const uploadMedia = async (req, res) => {
         await newlyCreatedMedia.save();
 
         return res.status(201).json({
-            success: false,
+            success: true,
             message: "Media uploaded successfully",
             mediaId: newlyCreatedMedia._id,
             url: newlyCreatedMedia.url
         })
     } catch (error) {
-        logger.error("IError while uploading file to Cloudinary", error);
+        logger.error("Error while uploading file to Cloudinary", error);
         return res.status(500).status({
             success: false,
             message: "Error while uploading file to Cloudinary"
+        })
+    }
+}
+
+export const getAllMedia = async (req, res) => {
+    try {
+        const results = await Media.find({});
+        return res.json({ success: true, data: results });
+    } catch (error) {
+        logger.error("Error while fetching all media from Cloudinary", error);
+        return res.status(500).status({
+            success: false,
+            message: "Error while fetching all media from Cloudinary"
         })
     }
 }

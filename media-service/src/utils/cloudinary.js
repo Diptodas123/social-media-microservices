@@ -2,9 +2,9 @@ import { v2 as cloudinary } from "cloudinary";
 import { logger } from "./logger.js";
 
 cloudinary.config({
-    cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
-    api_key: process.env.CLOUDINARY_API_KEY,
-    api_secret: process.env.CLOUDINARY_API_SECRET
+    cloud_name: "di0c1nqwn",
+    api_key: "972125545339653",
+    api_secret: "r1jdAqbs7XQ9b0uzjoRLs4MQn4A"
 });
 
 const uploadMediaToCloudinary = (file) => {
@@ -24,4 +24,15 @@ const uploadMediaToCloudinary = (file) => {
     });
 };
 
-export { uploadMediaToCloudinary };
+const deleteMediaFromCloudinary = async (publicId) => {
+    try {
+        const result = await cloudinary.uploader.destroy(publicId);
+        logger.info("Media deleted successfully from cloudinary", publicId);
+        return result; 
+    } catch (error) {
+        logger.error("Error While deleting media from Cloudinary", error);
+        throw error;
+    }
+}
+
+export { uploadMediaToCloudinary, deleteMediaFromCloudinary };

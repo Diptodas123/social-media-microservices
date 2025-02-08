@@ -7,6 +7,7 @@ import postRoutes from "./routes/post-service.js";
 import errorHandler from "./middlewares/errorHandler.js";
 import { connectDB, rateLimiter, redisClient } from "./db.js";
 import { sensitiveEndpointsLimiter } from "./middlewares/sensitiveEndpointsLimiter.js";
+import { connectToRabbitMQ } from "./utils/rabbitmq.js";
 
 config();
 
@@ -47,10 +48,20 @@ app.use("/api/posts", (req, res, next) => {
 app.use(errorHandler);
 
 //Start the server
-app.listen(PORT, () => {
-    logger.info(`Post Service is running at ${PORT}`)
-    console.log(`Post Service is running at http://localhost:${PORT}`);
-})
+async function startServer() {
+    try {
+        await connectToRabbitMQ();
+        app.listen(PORT, () => {
+            logger.info(`Post Service is running at ${PORT}`)
+            console.log(`Post Service is running at http://localhost:${PORT}`);
+        })
+    } catch (error) {
+        logger.error("Failed to connect to Server", error);
+        process.exit(1);
+    }
+}
+
+startServer();
 
 //unhandled promise rejection
 process.on("unhandledRejection", (reason, promise) => {

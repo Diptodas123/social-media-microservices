@@ -1,6 +1,7 @@
 import { logger } from "../utils/logger.js";
 import Post from "../models/Post.js";
 import { validateCreatePost } from "../utils/validation.js";
+import { publishEvent } from "../utils/rabbitmq.js";
 
 async function invalidatePostCache(req, input) {
 
@@ -171,6 +172,13 @@ export const deletePost = async (req, res) => {
                 message: "Post not found"
             });
         }
+
+        //publish MEDIA_EVENT to RaabitMQ
+        await publishEvent('post.deleted',{
+            postId:deletedPost._id.toString(),
+            userId:req.user.userId,
+            mediaIds:deletedPost.mediaIds
+        });
 
         //invalidate the cache
         await invalidatePostCache(req, postId);
