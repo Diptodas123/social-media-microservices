@@ -49,7 +49,7 @@ async function startServer() {
     try {
         await connectToRabbitMQ();
 
-        //consume all events
+        //consume post.deleted event whenevr post has been deleted in the Post DB
         await consumeEvent("post.deleted", handlePostDeleted);
         app.listen(PORT, () => {
             logger.info(`Media Service is running at ${PORT}`)

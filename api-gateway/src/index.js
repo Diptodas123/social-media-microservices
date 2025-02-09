@@ -103,6 +103,21 @@ app.use("/v1/media", validateToken, proxy(process.env.MEDIA_SERVICE_URL, { //loc
     parseReqBody: false
 }));
 
+// Setting up proxy for search service
+app.use("/v1/search", validateToken, proxy(process.env.SEARCH_SERVICE_URL, { //localhost:3000/v1/media/ ->  localhost:3004/api/media/
+    ...proxyOptions,
+    proxyReqOptDecorator: (proxyReqOpts, srcReq) => {
+        proxyReqOpts.headers["Content-Type"] = "application/json";
+        proxyReqOpts.headers['x-user-id'] = srcReq.user.userId; // Forwarding the user id to post-service for authorization
+        return proxyReqOpts;
+    },
+    userResDecorator: (proxyRes, proxyResData, userReq, userRes) => {
+        logger.info(`Response from search service: ${proxyRes.statusCode}`);
+        return proxyResData;
+    },
+    parseReqBody: false
+}));
+
 // Global error handler
 app.use(errorHandler);
 
@@ -112,6 +127,7 @@ app.listen(PORT, () => {
     logger.info(`Identity service is running at ${process.env.IDENTITY_SERVICE_URL}`);
     logger.info(`Post service is running at ${process.env.POST_SERVICE_URL}`);
     logger.info(`Media service is running at ${process.env.MEDIA_SERVICE_URL}`);
+    logger.info(`Search service is running at ${process.env.SEARCH_SERVICE_URL}`);
     logger.info(`Redis is running at ${process.env.REDIS_URL}`);
 });
 

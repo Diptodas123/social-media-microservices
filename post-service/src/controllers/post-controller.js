@@ -6,7 +6,7 @@ import { publishEvent } from "../utils/rabbitmq.js";
 async function invalidatePostCache(req, input) {
 
     //invalidate the cache for a single post
-    const postId=`post:${input}`;
+    const postId = `post:${input}`;
     await req.redisClient.del(postId);
 
     //invalidate the cache for all posts
@@ -38,6 +38,14 @@ export const createPost = async (req, res) => {
         });
         await newPost.save();
         logger.info("Post created successfully");
+
+        //publish post.created event for search service 
+        await publishEvent("post.created", {
+            postId: newPost._id.toString(),
+            userId: newPost.user.toString(),
+            content: newPost.content,
+            createdAt: newPost.createdAt
+        });
 
         //invalidate the cache, otherwise the new post will not be visible in the list
         await invalidatePostCache(req, newPost._id.toString());
@@ -173,11 +181,11 @@ export const deletePost = async (req, res) => {
             });
         }
 
-        //publish MEDIA_EVENT to RaabitMQ
-        await publishEvent('post.deleted',{
-            postId:deletedPost._id.toString(),
-            userId:req.user.userId,
-            mediaIds:deletedPost.mediaIds
+        //publish MEDIA_EVENT to RaabitMQ for Media Service to delete its asscocaited assets
+        await publishEvent('post.deleted', {
+            postId: deletedPost._id.toString(),
+            userId: req.user.userId,
+            mediaIds: deletedPost.mediaIds
         });
 
         //invalidate the cache
